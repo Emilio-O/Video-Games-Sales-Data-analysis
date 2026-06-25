@@ -1,0 +1,695 @@
+---
+title: "Proyecto integrativo: visualización de datos de videojuegos"
+author:
+  - "Emilio Ortiz-Avila"
+  - "Mayela Fosado-Mendoza"
+date: today
+lang: es
+format:
+  html:
+    toc: true
+    toc-title: "Tabla de contenidos"
+    toc-location: left
+    toc-depth: 3
+    number-sections: false
+    theme:
+      light: flatly
+      dark: darkly
+    css: styles_formal.css
+    embed-resources: true
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+```{=html}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const authorBlock = document.querySelector(".quarto-title-meta .quarto-title-meta-contents");
+  if (!authorBlock || authorBlock.dataset.socialLinks === "ready") return;
+
+  const profiles = [
+    {
+      github: "https://github.com/Emilio-O",
+      linkedin: "https://www.linkedin.com/in/emilio-ortiz-avila-22b6b7340/",
+      email: "aeortiz06@mail.com"
+    },
+    {
+      github: "https://github.com/Mayfm",
+      linkedin: "https://www.linkedin.com/in/mayela-fosado-mendoza/",
+      email: "maye.fosado@gmail.com"
+    }
+  ];
+
+  authorBlock.querySelectorAll("p").forEach(function (author, index) {
+    const profile = profiles[index];
+    if (!profile) return;
+
+    const links = document.createElement("span");
+    links.className = "author-profile-links";
+    links.innerHTML =
+      '<a class="author-profile-link" href="' + profile.github + '" target="_blank" rel="noopener">GitHub</a>' +
+      '<span class="author-profile-separator" aria-hidden="true">/</span>' +
+      '<a class="author-profile-link" href="' + profile.linkedin + '" target="_blank" rel="noopener">LinkedIn</a>' +
+      '<span class="author-profile-separator" aria-hidden="true">/</span>' +
+      '<a class="author-profile-link" href="mailto:' + profile.email + '">' + profile.email + '</a>';
+
+    author.appendChild(document.createElement("br"));
+    author.appendChild(links);
+  });
+
+  authorBlock.dataset.socialLinks = "ready";
+});
+</script>
+```
+
+# Descripción general
+
+En este proyecto construirás una página en Quarto con un análisis visual de una base de datos de ventas de videojuegos.
+
+El objetivo no es llenar respuestas en este documento. El objetivo es desarrollar una página con resultados: código, tablas resumidas, gráficas e interpretaciones breves.
+
+Cada sección de análisis debe incluir:
+
+- Una frase breve que indique qué se quiere mostrar.
+- El código necesario para preparar los datos.
+- Una gráfica construida con `ggplot2`.
+- Una interpretación corta debajo de la gráfica.
+
+El flujo de trabajo será:
+
+```text
+pregunta de análisis → preparación de datos → gráfica → interpretación
+```
+
+# Datos
+
+Usaremos el archivo `vgsales.csv`, disponible en Kaggle como `Video Game Sales`.
+
+Cada fila representa un videojuego. Algunas columnas importantes son:
+
+| Columna | Descripción |
+|---|---|
+| `Rank` | Posición del videojuego dentro de la base |
+| `Name` | Nombre del videojuego |
+| `Platform` | Plataforma o consola |
+| `Year` | Año de lanzamiento |
+| `Genre` | Género del videojuego |
+| `Publisher` | Compañía publicadora |
+| `NA_Sales` | Ventas en Norteamérica |
+| `EU_Sales` | Ventas en Europa |
+| `JP_Sales` | Ventas en Japón |
+| `Other_Sales` | Ventas en otras regiones |
+| `Global_Sales` | Ventas globales |
+
+Las ventas están reportadas en millones de copias.
+
+# Crear el repositorio local
+
+Crea una carpeta para tu proyecto e inicializa un repositorio local con Git.
+
+```bash
+mkdir video-game-sales-r
+cd video-game-sales-r
+git init
+```
+
+# Crear la estructura del proyecto
+
+Dentro del repositorio, crea las carpetas necesarias.
+
+```bash
+mkdir data
+mkdir scripts
+mkdir figures
+```
+
+Crea los archivos principales.
+
+```bash
+touch README.md
+touch ejercicio_videojuegos.qmd
+touch scripts/01_analisis_videojuegos.R
+```
+
+Tu proyecto debe tener una estructura parecida a esta:
+
+```text
+video-game-sales-r/
+├── data/
+│   └── vgsales.csv
+├── scripts/
+│   └── 01_analisis_videojuegos.R
+├── figures/
+│   ├── grafica_01.png
+│   ├── grafica_02.png
+│   └── grafica_final.png
+├── ejercicio_videojuegos.qmd
+└── README.md
+```
+
+Los archivos de imagen se crearán cuando guardes tus gráficas.
+
+# Descargar la base de datos
+
+Si tienes configurada la herramienta de Kaggle en la terminal, puedes descargar la base de datos con:
+
+```bash
+pip install kaggle
+```
+
+```bash
+kaggle datasets download -d gregorut/videogamesales -p data --unzip
+```
+
+Verifica que el archivo esté en la carpeta `data/`.
+
+```bash
+ls data
+```
+
+Debe aparecer el archivo:
+
+```text
+vgsales.csv
+```
+
+Si la descarga no funciona, usa el archivo `vgsales.csv` proporcionado por las personas instructoras y colócalo dentro de la carpeta `data/`.
+
+# Primer commit
+
+Guarda la estructura inicial del proyecto.
+
+```bash
+git status
+git add .
+git commit -m "Crea estructura inicial del proyecto"
+```
+
+# Preparar el entorno en R
+
+En el archivo `ejercicio_videojuegos.qmd`, carga los paquetes necesarios.
+
+```{r}
+library(readr)
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+library(forcats)
+```
+
+Importa los datos.
+
+```{r}
+videojuegos <- read_csv("data/vgsales.csv", show_col_types = FALSE)
+```
+
+# Exploración inicial
+
+Antes de analizar, revisa la estructura de la base de datos.
+
+```{r}
+head(videojuegos)
+dim(videojuegos)
+names(videojuegos)
+glimpse(videojuegos)
+```
+
+En tu página, incluye un párrafo breve que explique:
+
+- Qué representa cada fila.
+- Cuántas observaciones y columnas tiene la base.
+- Qué variable usarás como medida principal de ventas.
+
+# Limpieza básica
+
+Revisa valores faltantes.
+
+```{r}
+colSums(is.na(videojuegos))
+```
+
+Revisa el tipo de dato de la columna `Year`.
+
+```{r}
+class(videojuegos$Year)
+```
+
+Convierte `Year` a número y elimina registros sin año o sin publicadora.
+
+```{r}
+videojuegos_limpio <- videojuegos %>%
+  mutate(
+    Year = readr::parse_number(as.character(Year))
+  ) %>%
+  filter(!is.na(Year)) %>%
+  filter(!is.na(Publisher))
+```
+
+Compara la base original con la base limpia.
+
+```{r}
+dim(videojuegos)
+dim(videojuegos_limpio)
+```
+
+Verifica que `Year` ya sea numérica.
+
+```{r}
+class(videojuegos_limpio$Year)
+```
+
+En tu página, incluye una nota breve sobre qué limpieza hiciste y por qué.
+
+# Tema visual
+
+Usa este tema para dar consistencia visual a tus gráficas.
+
+```{r}
+theme_videojuegos <- function() {
+  theme_minimal(base_size = 13) +
+    theme(
+      plot.title = element_text(face = "bold", size = 16),
+      plot.subtitle = element_text(size = 11),
+      plot.caption = element_text(size = 9, color = "gray40"),
+      axis.title = element_text(face = "bold"),
+      panel.grid.minor = element_blank(),
+      legend.position = "bottom"
+    )
+}
+```
+
+# Criterios para las gráficas
+
+Cada gráfica debe cumplir con lo siguiente:
+
+- Responder una pregunta clara.
+- Tener un título informativo.
+- Tener subtítulo cuando ayude a entender la comparación.
+- Mostrar ejes con nombres claros.
+- Incluir unidades cuando sea necesario.
+- Ordenar categorías cuando corresponda.
+- Evitar demasiadas categorías.
+- Usar un diseño limpio.
+- Incluir una interpretación breve.
+
+# Ejercicio 1. Videojuegos con mayores ventas globales
+
+Construye una visualización que muestre los 10 videojuegos con mayores ventas globales.
+
+Prepara los datos:
+
+```{r}
+top_juegos <- videojuegos_limpio %>%
+  select(Name, Platform, Year, Genre, Publisher, Global_Sales) %>%
+  arrange(desc(Global_Sales)) %>%
+  slice_head(n = 10)
+
+top_juegos
+```
+
+En tu página, incluye una gráfica que represente estos datos.
+
+Requisitos de la gráfica:
+
+- Debe mostrar los nombres de los videojuegos.
+- Debe mostrar las ventas globales.
+- Debe estar ordenada de menor a mayor o de mayor a menor.
+- Debe ser fácil de leer.
+
+Debajo de la gráfica, escribe una interpretación corta.
+
+# Ejercicio 2. Ventas globales por género
+
+Construye una visualización para comparar las ventas globales acumuladas por género.
+
+Prepara los datos:
+
+```{r}
+ventas_por_genero <- videojuegos_limpio %>%
+  group_by(Genre) %>%
+  summarise(
+    ventas_globales = sum(Global_Sales, na.rm = TRUE),
+    numero_juegos = n(),
+    .groups = "drop"
+  ) %>%
+  arrange(desc(ventas_globales))
+
+ventas_por_genero
+```
+
+En tu página, incluye una gráfica que muestre qué géneros concentran más ventas globales.
+
+Requisitos de la gráfica:
+
+- Debe comparar géneros.
+- Debe usar ventas globales acumuladas.
+- Debe ordenar los géneros.
+- Debe comunicar si estás mostrando ventas totales, no ventas promedio.
+
+Debajo de la gráfica, escribe una interpretación corta.
+
+# Ejercicio 3. Número de juegos y ventas globales
+
+Construye una visualización para explorar si los géneros con más juegos registrados también acumulan más ventas.
+
+Prepara los datos:
+
+```{r}
+genero_juegos_ventas <- videojuegos_limpio %>%
+  group_by(Genre) %>%
+  summarise(
+    numero_juegos = n(),
+    ventas_globales = sum(Global_Sales, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+genero_juegos_ventas
+```
+
+En tu página, incluye una gráfica que compare `numero_juegos` y `ventas_globales`.
+
+Requisitos de la gráfica:
+
+- Debe mostrar la relación entre ambas variables.
+- Cada punto o marca debe representar un género.
+- Debe permitir identificar si hay géneros que no siguen el patrón general.
+
+Debajo de la gráfica, escribe una interpretación corta.
+
+# Ejercicio 4. Venta típica por género
+
+Construye una visualización que muestre la venta mediana por género.
+
+Prepara los datos:
+
+```{r}
+ventas_tipicas_genero <- videojuegos_limpio %>%
+  group_by(Genre) %>%
+  summarise(
+    venta_promedio = mean(Global_Sales, na.rm = TRUE),
+    venta_mediana = median(Global_Sales, na.rm = TRUE),
+    numero_juegos = n(),
+    .groups = "drop"
+  ) %>%
+  arrange(desc(venta_mediana))
+
+ventas_tipicas_genero
+```
+
+En tu página, incluye una gráfica que represente `venta_mediana` por género.
+
+Requisitos de la gráfica:
+
+- Debe mostrar venta mediana, no venta total.
+- Debe ordenar los géneros.
+- Debe explicar en el título o subtítulo que se usa la mediana.
+
+Debajo de la gráfica, escribe una interpretación corta.
+
+# Ejercicio 5. Ventas por región
+
+Construye una visualización que compare ventas acumuladas por región.
+
+Prepara los datos:
+
+```{r}
+ventas_por_region <- videojuegos_limpio %>%
+  summarise(
+    Norteamerica = sum(NA_Sales, na.rm = TRUE),
+    Europa = sum(EU_Sales, na.rm = TRUE),
+    Japon = sum(JP_Sales, na.rm = TRUE),
+    Otras_regiones = sum(Other_Sales, na.rm = TRUE)
+  ) %>%
+  pivot_longer(
+    cols = everything(),
+    names_to = "region",
+    values_to = "ventas"
+  ) %>%
+  arrange(desc(ventas))
+
+ventas_por_region
+```
+
+En tu página, incluye una gráfica que represente las ventas por región.
+
+Requisitos de la gráfica:
+
+- Debe comparar regiones.
+- Debe usar ventas acumuladas.
+- Debe estar ordenada.
+- Debe evitar afirmar que una región "juega más" sin evidencia adicional.
+
+Debajo de la gráfica, escribe una interpretación corta.
+
+# Ejercicio 6. Ventas globales por década
+
+Construye una visualización que muestre cómo se distribuyen las ventas globales por década.
+
+Primero crea una columna llamada `decada`.
+
+```{r}
+videojuegos_limpio <- videojuegos_limpio %>%
+  mutate(decada = floor(Year / 10) * 10)
+```
+
+Prepara los datos:
+
+```{r}
+ventas_por_decada <- videojuegos_limpio %>%
+  group_by(decada) %>%
+  summarise(
+    ventas_globales = sum(Global_Sales, na.rm = TRUE),
+    numero_juegos = n(),
+    .groups = "drop"
+  ) %>%
+  arrange(decada)
+
+ventas_por_decada
+```
+
+En tu página, incluye una gráfica que represente las ventas por década.
+
+Requisitos de la gráfica:
+
+- Debe mostrar el cambio temporal o la comparación entre décadas.
+- Debe indicar que las ventas son acumuladas.
+- Debe evitar conclusiones demasiado fuertes si la base no cubre todos los años por igual.
+
+Debajo de la gráfica, escribe una interpretación corta.
+
+# Ejercicio 7. Plataformas con mayores ventas globales
+
+Construye una visualización con las 10 plataformas de mayores ventas globales.
+
+Prepara los datos:
+
+```{r}
+top_plataformas <- videojuegos_limpio %>%
+  group_by(Platform) %>%
+  summarise(
+    ventas_globales = sum(Global_Sales, na.rm = TRUE),
+    numero_juegos = n(),
+    .groups = "drop"
+  ) %>%
+  arrange(desc(ventas_globales)) %>%
+  slice_head(n = 10)
+
+top_plataformas
+```
+
+En tu página, incluye una gráfica que represente el top 10 de plataformas.
+
+Requisitos de la gráfica:
+
+- Debe mostrar solo las 10 plataformas principales.
+- Debe ordenar las plataformas.
+- Debe ser legible.
+- Debe comunicar que se trata de ventas globales acumuladas.
+
+Debajo de la gráfica, escribe una interpretación corta.
+
+# Ejercicio 8. Ventas en Norteamérica y Europa
+
+Construye una visualización para explorar la relación entre ventas en Norteamérica y ventas en Europa.
+
+En tu página, incluye una gráfica usando `NA_Sales` y `EU_Sales`.
+
+Requisitos de la gráfica:
+
+- Debe mostrar la relación entre dos variables numéricas.
+- Debe usar transparencia si los puntos se enciman.
+- Puede incluir una línea de tendencia.
+- Debe aclarar que una relación visual no implica causalidad.
+
+Debajo de la gráfica, escribe una interpretación corta.
+
+# Ejercicio 9. Género y región
+
+Construye una visualización para comparar ventas por género en Norteamérica, Europa y Japón.
+
+Prepara los datos:
+
+```{r}
+ventas_region_genero <- videojuegos_limpio %>%
+  group_by(Genre) %>%
+  summarise(
+    Norteamerica = sum(NA_Sales, na.rm = TRUE),
+    Europa = sum(EU_Sales, na.rm = TRUE),
+    Japon = sum(JP_Sales, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  pivot_longer(
+    cols = c(Norteamerica, Europa, Japon),
+    names_to = "region",
+    values_to = "ventas"
+  )
+
+ventas_region_genero
+```
+
+En tu página, incluye una gráfica que compare ventas por género y región.
+
+Requisitos de la gráfica:
+
+- Debe comparar al menos tres regiones.
+- Debe permitir ver si el patrón por género cambia entre regiones.
+- Puede usar barras agrupadas o facetas.
+- Debe evitar saturarse con demasiada información.
+
+Debajo de la gráfica, escribe una interpretación corta.
+
+# Ejercicio 10. Pregunta propia
+
+Propón una pregunta adicional que pueda responderse con esta base de datos y represéntala con una gráfica.
+
+Tu análisis debe incluir:
+
+- La pregunta que elegiste.
+- La preparación de datos necesaria.
+- Una gráfica hecha con `ggplot2`.
+- Una interpretación breve.
+- Una limitación de tu análisis.
+
+Evita repetir exactamente los análisis anteriores. Puedes usar las mismas variables si las combinas de otra manera o si respondes una idea distinta.
+
+Debajo de la gráfica, escribe una interpretación corta.
+
+# Guardar las gráficas
+
+Para guardar una gráfica, primero guárdala como objeto.
+
+Ejemplo:
+
+```{r, eval=FALSE}
+mi_grafica <- ggplot(top_plataformas, aes(x = fct_reorder(Platform, ventas_globales), y = ventas_globales)) +
+  geom_col(width = 0.75) +
+  coord_flip() +
+  labs(
+    title = "Top 10 plataformas por ventas globales",
+    subtitle = "Ventas acumuladas en millones de copias",
+    x = NULL,
+    y = "Ventas globales",
+    caption = "Fuente: Video Game Sales, Kaggle"
+  ) +
+  theme_videojuegos()
+
+mi_grafica
+```
+
+Después usa `ggsave()`.
+
+```{r, eval=FALSE}
+ggsave(
+  filename = "figures/grafica_final.png",
+  plot = mi_grafica,
+  width = 8,
+  height = 5,
+  dpi = 300
+)
+```
+
+# Script de R
+
+Además de tu página Quarto, crea un script llamado:
+
+```text
+scripts/01_analisis_videojuegos.R
+```
+
+Ese script debe incluir:
+
+1. Carga de paquetes.
+2. Importación de datos.
+3. Limpieza básica.
+4. Código para preparar las tablas usadas en tus gráficas.
+5. Código para generar tus gráficas.
+6. Código para guardar al menos una figura con `ggsave()`.
+
+# Renderizar la página
+
+Cuando termines, renderiza tu archivo Quarto a HTML.
+
+Desde RStudio puedes usar el botón `Render`.
+
+Desde la terminal puedes usar:
+
+```bash
+quarto render ejercicio_videojuegos.qmd
+```
+
+Esto generará una página HTML con tus resultados.
+
+# Cierre con Git
+
+Revisa el estado del repositorio.
+
+```bash
+git status
+```
+
+Agrega los archivos modificados.
+
+```bash
+git add ejercicio_videojuegos.qmd
+git add scripts/01_analisis_videojuegos.R
+git add figures/
+git add README.md
+```
+
+Haz un commit.
+
+```bash
+git commit -m "Agrega visualizaciones de datos de videojuegos"
+```
+
+# Entregable
+
+El entregable es una página HTML generada con Quarto que contenga todos tus resultados.
+
+Tu repositorio o carpeta de entrega debe incluir:
+
+- Carpeta `data/` con la base de datos.
+- Carpeta `scripts/` con tu script de R.
+- Carpeta `figures/` con tus gráficas guardadas.
+- Archivo `ejercicio_videojuegos.qmd`.
+- Archivo HTML generado por Quarto.
+- Archivo `README.md`.
+- Al menos un commit claro.
+- Interpretaciones breves debajo de las gráficas.
+
+# Lista de verificación final
+
+Antes de entregar, revisa lo siguiente:
+
+- La página HTML se genera sin errores.
+- Todas las gráficas aparecen correctamente.
+- Cada gráfica responde una idea clara.
+- Los títulos comunican el mensaje principal.
+- Los ejes tienen nombres claros.
+- Las unidades están indicadas cuando es necesario.
+- Las categorías están ordenadas cuando corresponde.
+- Las gráficas no están saturadas.
+- Las interpretaciones no exageran lo que los datos permiten concluir.
+- El repositorio tiene una estructura clara.
