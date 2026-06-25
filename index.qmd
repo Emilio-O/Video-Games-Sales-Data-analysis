@@ -272,7 +272,7 @@ theme_videojuegos <- function() {
     theme(
       plot.title = element_text(face = "bold", size = 16),
       plot.subtitle = element_text(size = 11),
-      plot.caption = element_text(size = 9, color = "gray40"),
+      plot.caption = element_text(size = 9, color = "#659287"),
       axis.title = element_text(face = "bold"),
       panel.grid.minor = element_blank(),
       legend.position = "bottom"
@@ -320,6 +320,33 @@ Requisitos de la gráfica:
 
 Debajo de la gráfica, escribe una interpretación corta.
 
+
+::: {.callout-tip collapse="true"}
+## Ver gráfica
+
+```{r}
+top_juegos %>%
+  mutate(Name = reorder(Name, Global_Sales)) %>%
+  ggplot(aes(x = Name, y = Global_Sales, fill = Global_Sales)) +
+  geom_col() +
+  coord_flip() +
+  scale_fill_gradient(
+    low = "#80BCBD",
+    high = "#FF6868"
+  ) +
+  labs(
+    title = "Top 10 videojuegos con mayores ventas globales",
+    subtitle = "Ventas globales en millones de copias",
+    x = "Videojuego",
+    y = "Ventas globales (millones)"
+  ) +
+  theme_videojuegos() +
+  theme(legend.position = "none")
+
+```
+
+:::
+
 # Ejercicio 2. Ventas globales por género
 
 Construye una visualización para comparar las ventas globales acumuladas por género.
@@ -350,6 +377,37 @@ Requisitos de la gráfica:
 
 Debajo de la gráfica, escribe una interpretación corta.
 
+
+::: {.callout-tip collapse="true"}
+## Ver gráfica
+
+```{r}
+ventas_por_genero %>%
+  mutate(Genre = reorder(Genre, ventas_globales)) %>%
+  ggplot(aes(
+    x = Genre,
+    y = ventas_globales,
+    fill = ventas_globales
+  )) +
+  geom_col() +
+  coord_flip() +
+  scale_fill_gradient(
+    low = "#80BCBD",
+    high = "#007979"
+  ) +
+  labs(
+    title = "Ventas globales acumuladas por género",
+    subtitle = "Suma total de ventas globales por género",
+    x = "Género",
+    y = "Ventas globales acumuladas (millones)"
+  ) +
+  theme_videojuegos() +
+  theme(legend.position = "none")
+```
+
+:::
+
+
 # Ejercicio 3. Número de juegos y ventas globales
 
 Construye una visualización para explorar si los géneros con más juegos registrados también acumulan más ventas.
@@ -377,6 +435,37 @@ Requisitos de la gráfica:
 - Debe permitir identificar si hay géneros que no siguen el patrón general.
 
 Debajo de la gráfica, escribe una interpretación corta.
+
+::: {.callout-tip collapse="true"}
+## Ver gráfica
+
+```{r}
+ggplot(
+  genero_juegos_ventas,
+  aes(
+    x = numero_juegos,
+    y = ventas_globales,
+    label = Genre
+  )
+) +
+  geom_point(
+    color = "#6FBEB2",
+    size = 4
+  ) +
+  geom_text(
+    vjust = -0.7,
+    size = 3.5
+  ) +
+  labs(
+    title = "Número de juegos y ventas globales por género",
+    subtitle = "Cada punto representa un género",
+    x = "Número de juegos",
+    y = "Ventas globales acumuladas (millones)"
+  ) +
+  theme_videojuegos()
+```
+
+:::
 
 # Ejercicio 4. Venta típica por género
 
@@ -407,6 +496,37 @@ Requisitos de la gráfica:
 - Debe explicar en el título o subtítulo que se usa la mediana.
 
 Debajo de la gráfica, escribe una interpretación corta.
+
+
+::: {.callout-tip collapse="true"}
+## Ver gráfica
+
+```{r}
+ventas_tipicas_genero %>%
+  mutate(Genre = reorder(Genre, venta_mediana)) %>%
+  ggplot(aes(
+    x = Genre,
+    y = venta_mediana,
+    fill = venta_mediana
+  )) +
+  geom_col() +
+  coord_flip() +
+  scale_fill_gradient(
+   low = "#80BCBD",
+    high = "#FF6868"
+  ) +
+  labs(
+    title = "Venta mediana por género",
+    subtitle = "La gráfica muestra la mediana de ventas globales por videojuego",
+    x = "Género",
+    y = "Venta mediana (millones de copias)"
+  ) +
+  theme_videojuegos() +
+  theme(legend.position = "none")
+```
+
+:::
+
 
 # Ejercicio 5. Ventas por región
 
@@ -442,6 +562,36 @@ Requisitos de la gráfica:
 - Debe evitar afirmar que una región "juega más" sin evidencia adicional.
 
 Debajo de la gráfica, escribe una interpretación corta.
+
+
+::: {.callout-tip collapse="true"}
+## Ver gráfica
+
+```{r}
+ventas_por_region %>%
+  mutate(region = reorder(region, ventas)) %>%
+  ggplot(aes(
+    x = region,
+    y = ventas,
+    fill = ventas
+  )) +
+  geom_col() +
+  coord_flip() +
+  scale_fill_gradient(
+   low = "#80BCBD",
+    high = "#007979"
+  ) +
+  labs(
+    title = "Ventas globales acumuladas por región",
+    subtitle = "Suma total de ventas registradas en cada región",
+    x = "Región",
+    y = "Ventas acumuladas (millones de copias)"
+  ) +
+  theme_videojuegos() +
+  theme(legend.position = "none")
+```
+
+:::
 
 # Ejercicio 6. Ventas globales por década
 
@@ -479,6 +629,37 @@ Requisitos de la gráfica:
 
 Debajo de la gráfica, escribe una interpretación corta.
 
+::: {.callout-tip collapse="true"}
+## Ver gráfica
+
+```{r}
+ggplot(
+  ventas_por_decada,
+  aes(
+    x = decada,
+    y = ventas_globales
+  )
+) +
+  geom_line(
+    color = "#80BCBD",
+    linewidth = 1.2
+  ) +
+  geom_point(
+    color = "#FF6868",
+    size = 3
+  ) +
+  labs(
+    title = "Ventas globales acumuladas por década",
+    subtitle = "Suma total de ventas registradas en cada década",
+    x = "Década",
+    y = "Ventas acumuladas (millones de copias)"
+  ) +
+  theme_videojuegos()
+```
+
+:::
+
+
 # Ejercicio 7. Plataformas con mayores ventas globales
 
 Construye una visualización con las 10 plataformas de mayores ventas globales.
@@ -510,6 +691,35 @@ Requisitos de la gráfica:
 
 Debajo de la gráfica, escribe una interpretación corta.
 
+::: {.callout-tip collapse="true"}
+## Ver gráfica
+
+```{r}
+top_plataformas %>%
+  mutate(Platform = reorder(Platform, ventas_globales)) %>%
+  ggplot(aes(
+    x = Platform,
+    y = ventas_globales,
+    fill = ventas_globales
+  )) +
+  geom_col() +
+  coord_flip() +
+  scale_fill_gradient(
+     low = "#80BCBD",
+    high = "#FF6868"
+  ) +
+  labs(
+    title = "Top 10 plataformas por ventas globales acumuladas",
+    subtitle = "Suma total de ventas globales por plataforma",
+    x = "Plataforma",
+    y = "Ventas globales acumuladas (millones de copias)"
+  ) +
+  theme_videojuegos() +
+  theme(legend.position = "none")
+```
+
+:::
+
 # Ejercicio 8. Ventas en Norteamérica y Europa
 
 Construye una visualización para explorar la relación entre ventas en Norteamérica y ventas en Europa.
@@ -524,6 +734,36 @@ Requisitos de la gráfica:
 - Debe aclarar que una relación visual no implica causalidad.
 
 Debajo de la gráfica, escribe una interpretación corta.
+
+::: {.callout-tip collapse="true"}
+## Ver gráfica
+
+```{r}
+top_plataformas %>%
+  mutate(Platform = reorder(Platform, ventas_globales)) %>%
+  ggplot(aes(
+    x = Platform,
+    y = ventas_globales,
+    fill = ventas_globales
+  )) +
+  geom_col() +
+  coord_flip() +
+  scale_fill_gradient(
+     low = "#80BCBD",
+    high = "#007979"
+  ) +
+  labs(
+    title = "Top 10 plataformas por ventas globales acumuladas",
+    subtitle = "Suma total de ventas globales registradas por plataforma",
+    x = "Plataforma",
+    y = "Ventas globales acumuladas (millones de copias)"
+  ) +
+  theme_videojuegos() +
+  theme(legend.position = "none")
+```
+
+:::
+
 
 # Ejercicio 9. Género y región
 
@@ -560,6 +800,40 @@ Requisitos de la gráfica:
 
 Debajo de la gráfica, escribe una interpretación corta.
 
+::: {.callout-tip collapse="true"}
+## Ver gráfica
+
+```{r}
+ggplot(
+  ventas_region_genero,
+  aes(
+    x = reorder(Genre, ventas),
+    y = ventas,
+    fill = region
+  )
+) +
+  geom_col(show.legend = FALSE) +
+  coord_flip() +
+  facet_wrap(~region) +
+  scale_fill_manual(
+    values = c(
+      "Norteamerica" = "#007979",
+      "Europa" = "#9BCF53",
+      "Japon" = "#FF6868"
+    )
+  ) +
+  labs(
+    title = "Ventas por género en distintas regiones",
+    subtitle = "Comparación entre Norteamérica, Europa y Japón",
+    x = "Género",
+    y = "Ventas acumuladas (millones de copias)"
+  ) +
+  theme_videojuegos()
+
+```
+
+:::
+
 # Ejercicio 10. Pregunta propia
 
 Propón una pregunta adicional que pueda responderse con esta base de datos y represéntala con una gráfica.
@@ -575,6 +849,52 @@ Tu análisis debe incluir:
 Evita repetir exactamente los análisis anteriores. Puedes usar las mismas variables si las combinas de otra manera o si respondes una idea distinta.
 
 Debajo de la gráfica, escribe una interpretación corta.
+
+::: {.callout-tip collapse="true"}
+## Ver gráfica
+
+```{r}
+
+# ¿Qué compañías (publishers) acumulan las mayores ventas globales?
+
+top_publishers <- videojuegos_limpio %>%
+  group_by(Publisher) %>%
+  summarise(
+    ventas_globales = sum(Global_Sales, na.rm = TRUE),
+    numero_juegos = n(),
+    .groups = "drop"
+  ) %>%
+  arrange(desc(ventas_globales)) %>%
+  slice_head(n = 10)
+
+top_publishers
+
+
+top_publishers %>%
+  mutate(Publisher = reorder(Publisher, ventas_globales)) %>%
+  ggplot(aes(
+    x = Publisher,
+    y = ventas_globales,
+    fill = ventas_globales
+  )) +
+  geom_col() +
+  coord_flip() +
+  scale_fill_gradient(
+     low = "#80BCBD",
+    high = "#007979"
+  ) +
+  labs(
+    title = "Top 10 compañías publicadoras por ventas globales acumuladas",
+    subtitle = "Suma total de ventas globales registradas por publicadora",
+    x = "Compañía Publicadora",
+    y = "Ventas globales acumuladas (millones de copias)"
+  ) +
+  theme_videojuegos() +
+  theme(legend.position = "none")
+
+```
+
+:::
 
 # Guardar las gráficas
 
